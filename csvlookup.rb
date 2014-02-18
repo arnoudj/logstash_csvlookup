@@ -76,7 +76,7 @@ class LogStash::Filters::CsvLookup < LogStash::Filters::Base
       if @memory
         @logger.debug "Memory lookup"
         if @lookup.has_key? event[@source]
-          values = @lookup[event[@source]]
+          values = Array.new @lookup[event[@source]]
           @fields.each do |field|
             event[field] = values.shift
           end
