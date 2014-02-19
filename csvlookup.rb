@@ -51,7 +51,7 @@ class LogStash::Filters::CsvLookup < LogStash::Filters::Base
       @logger.error("Loading CSV #{@path}.")
       i = 0
       if @memory
-        CSV.foreach(@path, {:col_sep => @col_sep, :headers => @header, :converters => :all}) do |row|
+        CSV.foreach(@path, {:col_sep => @col_sep, :headers => @header}) do |row|
           i+=1
           if row.length == @fields.length + 1
             key = row.shift
@@ -78,19 +78,21 @@ class LogStash::Filters::CsvLookup < LogStash::Filters::Base
         if @lookup.has_key? event[@source]
           values = Array.new @lookup[event[@source]]
           @fields.each do |field|
-            event[field] = values.shift
+            val = values.shift
+            event[field] = val unless val.nil?
           end
         end
       else
         @logger.debug "CSV file lookup"
         i = 0
-        CSV.foreach(@path, {:col_sep => @col_sep, :headers => @header, :converters => :all}) do |row|
+        CSV.foreach(@path, {:col_sep => @col_sep, :headers => @header}) do |row|
           i += 1
           if row.length == @fields.length + 1
             key = row.shift
             if key == event[@source]
               @fields.each do |field|
-                event[field] = row.shift
+                val row.shift
+                event[field] = val unless val.nil?
               end
             end
           else
