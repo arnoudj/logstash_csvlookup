@@ -91,7 +91,7 @@ class LogStash::Filters::CsvLookup < LogStash::Filters::Base
             key = row.shift
             if key == event[@source]
               @fields.each do |field|
-                val row.shift
+                val = row.shift
                 event[field] = val unless val.nil?
               end
             end
