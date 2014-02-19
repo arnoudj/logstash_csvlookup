@@ -32,6 +32,10 @@ class LogStash::Filters::CsvLookup < LogStash::Filters::Base
   # more of less fields are ignored.
   config :fields, :validate => :array, :required => true
 
+  # Prepend the specified string to the field names listed in fields.
+  # Useful if you use the same field names in multiple CSV lookups.
+  config :pre, :validate => :string, :default => ''
+
   # Load the CSV file in memory or search the file for every event that
   # is processed.
   config :memory, :validate => :boolean, :default => true
@@ -53,7 +57,7 @@ class LogStash::Filters::CsvLookup < LogStash::Filters::Base
       if @memory
         CSV.foreach(@path, {:col_sep => @col_sep, :headers => @header}) do |row|
           i+=1
-          if row.length == @fields.length + 1
+          if row.length >= @fields.length + 1
             key = row.shift
             @lookup[key] = row
           else
@@ -79,7 +83,7 @@ class LogStash::Filters::CsvLookup < LogStash::Filters::Base
           values = Array.new @lookup[event[@source]]
           @fields.each do |field|
             val = values.shift
-            event[field] = val unless val.nil?
+            event[pre + field] = val unless val.nil?
           end
         end
       else
@@ -92,7 +96,7 @@ class LogStash::Filters::CsvLookup < LogStash::Filters::Base
             if key == event[@source]
               @fields.each do |field|
                 val = row.shift
-                event[field] = val unless val.nil?
+                event[pre + field] = val unless val.nil?
               end
             end
           else
